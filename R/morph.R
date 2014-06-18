@@ -3,15 +3,14 @@ morph <- function (x, kernel, ...)
     UseMethod("morph")
 }
 
-morph.default <- function (x, kernel, brush = TRUE, eraser = FALSE, value = NULL, valueNot = NULL, nNeighbours = NULL, nNeighboursNot = NULL, ...)
+morph.default <- function (x, kernel, operator = c("+","-","*","i","1","0"), merge = c("sum","min","max","mean","median"), value = NULL, valueNot = NULL, nNeighbours = NULL, nNeighboursNot = NULL, ...)
 {
     x <- as.array(x)
     if (!is.numeric(x))
         report(OL$Error, "Target array must be numeric")
     
-    kernel <- as.array(kernel)
-    if (!is.numeric(kernel))
-        report(OL$Error, "Kernel must be numeric")
+    if (!isKernelArray(kernel))
+        kernel <- kernelArray(kernel)
     
     if (any(dim(kernel) %% 2 != 1))
         report(OL$Error, "Kernel must have odd width in all dimensions")
@@ -21,73 +20,115 @@ morph.default <- function (x, kernel, brush = TRUE, eraser = FALSE, value = NULL
     else if (length(dim(kernel)) > length(dim(x)))
         report(OL$Error, "Kernel has greater dimensionality than the target array")
     
-    if (storage.mode(kernel) == "integer" && storage.mode(x) == "double")
-    {
-        report(OL$Verbose, "Converting kernel to \"double\" mode to match target array")
-        storage.mode(kernel) <- "double"
-    }
-    else if (storage.mode(kernel) == "double" && storage.mode(x) == "integer")
-    {
-        kernelCopy <- kernel
-        storage.mode(kernelCopy) <- "integer"
-        if (isTRUE(all.equal(kernel, kernelCopy)))
-        {
-            report(OL$Verbose, "Converting kernel to \"integer\" mode to match target array")
-            storage.mode(kernel) <- "integer"
-        }
-        else
-        {
-            # Kernel cannot be accurately represented in integer mode, so result won't be able to either
-            # Hence, we need to modify the storage mode of the target array
-            report(OL$Verbose, "Converting target array to \"double\" mode to match kernel")
-            storage.mode(x) <- "double"
-        }
-    }
+    operator <- match.arg(operator)
+    merge <- match.arg(merge)
     
-    returnValue <- .Call("morph_R", x, kernel, as.double(value), as.double(valueNot), as.integer(nNeighbours), as.integer(nNeighboursNot), as.logical(brush), as.logical(eraser), PACKAGE="mmand")
-    dim(returnValue) <- dim(x)
+    storage.mode(x) <- "double"
+    
+    restrictions <- list(value=as.double(value), valueNot=as.double(valueNot), nNeighbours=as.integer(nNeighbours), nNeighboursNot=as.integer(nNeighboursNot))
+    
+    returnValue <- .Call("morph", x, kernel, operator, merge, restrictions, PACKAGE="mmand")
+    
+    if (length(dim(x)) > 1)
+        dim(returnValue) <- dim(x)
     
     return (returnValue)
 }
 
+binary <- function (x)
+{
+    x <- as.array(x)
+    if (!is.numeric(x))
+        report(OL$Error, "Array must be numeric")
+    
+    return (.Call("is_binary", x, PACKAGE="mmand"))
+}
+
 binarise <- function (x)
 {
-    kernel <- 1
-    storage.mode(kernel) <- storage.mode(x)
-    return (morph(x, kernel=kernel, brush=TRUE, valueNot=0))
+    return (morph(x, kernel=1, operator="1", valueNot=0))
 }
 
 gaussianSmooth <- function (x, sigma)
 {
     kernel <- gaussianKernel(sigma, normalised=TRUE)
-    return (morph(x, kernel, brush=FALSE))
+    return (morph(x, kernel, operator="*", merge="sum"))
+}
+
+meanFilter <- function (x, kernel)
+{
+    return (morph(x, kernel, operator="i", merge="mean"))
+}
+
+medianFilter <- function (x, kernel)
+{
+    return (morph(x, kernel, operator="i", merge="median"))
 }
 
 erode <- function (x, kernel)
 {
-    if (is.array(kernel) && all(dim(kernel) <= 3))
-        return (morph(x, kernel, brush=TRUE, eraser=TRUE, value=0, nNeighboursNot=0))
+    x <- as.array(x)
+    if (!isKernelArray(kernel))
+        kernel <- kernelArray(kernel)
+    
+    greyscaleImage <- !binary(x)
+    nNeighboursNot <- NULL
+    
+    if (greyscaleImage)
+    {
+        operator <- ifelse(binary(kernel), "i", "-")
+        valueNot <- NULL
+    }
     else
-        return (morph(x, kernel, brush=TRUE, eraser=TRUE, value=0))
+    {
+        if (all(dim(kernel) <= 3))
+            nNeighboursNot <- 3^length(dim(x)) - 1
+        operator <- "i"
+        valueNot <- 0
+    }
+    
+    return (morph(x, kernel, operator=operator, merge="min", valueNot=valueNot, nNeighboursNot=nNeighboursNot))
 }
 
 dilate <- function (x, kernel)
 {
-    if (is.array(x) && is.array(kernel) && all(dim(kernel) <= 3))
+    x <- as.array(x)
+    if (!isKernelArray(kernel))
+        kernel <- kernelArray(kernel)
+    
+    greyscaleImage <- !binary(x)
+    nNeighboursNot <- NULL
+    
+    if (greyscaleImage)
     {
-        neighbourCount <- 3^length(dim(x)) - 1
-        return (morph(x, kernel, brush=TRUE, valueNot=0, nNeighboursNot=neighbourCount))
+        operator <- ifelse(binary(kernel), "i", "+")
+        value <- NULL
     }
     else
-        return (morph(x, kernel, brush=TRUE, valueNot=0))
+    {
+        if (all(dim(kernel) <= 3))
+            nNeighboursNot <- 0
+        operator <- "i"
+        value <- 0
+    }
+    
+    return (morph(x, kernel, operator=operator, merge="max", value=value, nNeighboursNot=nNeighboursNot))
 }
 
 opening <- function (x, kernel)
 {
+    x <- as.array(x)
+    if (!isKernelArray(kernel))
+        kernel <- kernelArray(kernel)
+    
     return (dilate(erode(x, kernel), kernel))
 }
 
 closing <- function (x, kernel)
 {
+    x <- as.array(x)
+    if (!isKernelArray(kernel))
+        kernel <- kernelArray(kernel)
+    
     return (erode(dilate(x, kernel), kernel))
 }
