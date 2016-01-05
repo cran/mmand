@@ -86,7 +86,7 @@ morph.default <- function (x, kernel, operator = c("+","-","*","i","1","0"), mer
 #' This function checks whether a numeric array is binary, with only one unique
 #' nonzero value, or not.
 #' 
-#' @param x An object that can be coerced to a numeric array
+#' @param x An object that can be coerced to a numeric array.
 #' @return A logical value indicating whether the array is binary or not.
 #'   Binary in this case means that the array contains only one unique nonzero
 #'   value.
@@ -177,6 +177,11 @@ threshold <- function (x, level, method = c("literal","kmeans"), binarise = TRUE
 #' This function smoothes an array using a Gaussian kernel with a specified
 #' standard deviation.
 #' 
+#' This implementation takes advantage of the separability of the Gaussian
+#' kernel for speed when working in multiple dimensions. It is therefore
+#' equivalent to, but much faster than, directly applying a multidimensional
+#' kernel.
+#' 
 #' @param x An object that can be coerced to an array, or for which a
 #'   \code{\link{morph}} method exists.
 #' @param sigma A numeric vector giving the standard deviation of the kernel in
@@ -191,22 +196,33 @@ threshold <- function (x, level, method = c("literal","kmeans"), binarise = TRUE
 #' @export
 gaussianSmooth <- function (x, sigma)
 {
-    kernel <- gaussianKernel(sigma, normalised=TRUE)
-    return (morph(x, kernel, operator="*", merge="sum"))
+    morphFun <- function(y,k) morph(y, k, operator="*", merge="sum")
+    
+    kernels <- lapply(seq_along(sigma), function(i) {
+        currentSigma <- replace(rep(0,length(sigma)), i, sigma[i])
+        gaussianKernel(currentSigma, normalised=TRUE)
+    })
+    
+    return (Reduce(morphFun, kernels, x))
 }
 
 #' Apply a filter to an array
 #' 
-#' These functions apply mean or median filters to an array.
+#' These functions apply mean, median or Sobel filters to an array.
 #' 
 #' @param x An object that can be coerced to an array, or for which a
 #'   \code{\link{morph}} method exists.
 #' @param kernel A kernel array, indicating the scope of the filter.
+#' @param dim For \code{sobelFilter}, the dimensionality of the kernel. If
+#'   missing, this defaults to the dimensionality of \code{x}.
+#' @param axis For \code{sobelFilter}, the axis along which to apply the
+#'   operator, or 0 to apply it along all directions and generate a magnitude
+#'   image. See also \code{\link{sobelKernel}}.
 #' @return A morphed array with the same dimensions as the original array.
 #' 
 #' @author Jon Clayden <code@@clayden.org>
-#' @seealso \code{\link{morph}} for the function underlying this operation, and
-#'   \code{\link{kernels}} for kernel-generating functions.
+#' @seealso \code{\link{morph}} for the function underlying these operations,
+#'   and \code{\link{kernels}} for kernel-generating functions.
 #' @rdname filters
 #' @export
 meanFilter <- function (x, kernel)
@@ -219,6 +235,38 @@ meanFilter <- function (x, kernel)
 medianFilter <- function (x, kernel)
 {
     return (morph(x, kernel, operator="i", merge="median"))
+}
+
+#' @rdname filters
+#' @export
+sobelFilter <- function (x, dim, axis = 0)
+{
+    x <- as.array(x)
+    if (missing(dim))
+        dim <- length(base::dim(x))
+    
+    if (axis < 0 || axis > dim)
+        report(OL$Error, "The axis should be between 0 and the dimensionality of the kernel")
+    
+    if (axis == 0)
+    {
+        squaredImages <- lapply(1:dim, function(i) sobelFilter(x,dim,i)^2)
+        return (sqrt(Reduce("+", squaredImages)))
+    }
+    else
+    {
+        morphFun <- function(y,k) morph(y, k, operator="*", merge="sum")
+        
+        kernels <- lapply(1:dim, function(i) {
+            if (i == axis)
+                k <- sobelKernel(1)
+            else
+                k <- sobelKernel(1, 0)
+            array(k, dim=replace(rep(1L,dim), i, 3L))
+        })
+        
+        return (Reduce(morphFun, kernels, x))
+    }
 }
 
 #' Standard mathematical morphology operations
@@ -236,7 +284,7 @@ medianFilter <- function (x, kernel)
 #' If the kernel has only one unique nonzero value, it is described as
 #' ``flat''. For a flat kernel, the erosion is the minimum value of \code{x}
 #' within the nonzero region of \code{kernel}. For a nonflat kernel, this
-#' becomes minimum value of \code{x - kernel}. Dilation is the opposite
+#' becomes the minimum value of \code{x - kernel}. Dilation is the opposite
 #' operation, taking the maximum within the kernel.
 #' 
 #' @param x An object that can be coerced to an array, or for which a
@@ -267,19 +315,20 @@ erode <- function (x, kernel)
         kernel <- kernelArray(kernel)
     
     greyscaleImage <- !binary(x)
-    nNeighboursNot <- NULL
+    nNeighboursNot <- valueNot <- NULL
     
     if (greyscaleImage)
-    {
         operator <- ifelse(binary(kernel), "i", "-")
-        valueNot <- NULL
-    }
     else
     {
-        if (all(dim(kernel) <= 3))
-            nNeighboursNot <- 3^length(dim(x)) - 1
+        # Kernels with zero at the origin mess up the heuristics
         operator <- "i"
-        valueNot <- 0
+        if (kernel[ceiling(length(kernel)/2)] != 0)
+        {
+            valueNot <- 0
+            if (all(dim(kernel) <= 3))
+                nNeighboursNot <- 3^length(dim(x)) - 1
+        }
     }
     
     return (morph(x, kernel, operator=operator, merge="min", valueNot=valueNot, nNeighboursNot=nNeighboursNot))
@@ -294,19 +343,19 @@ dilate <- function (x, kernel)
         kernel <- kernelArray(kernel)
     
     greyscaleImage <- !binary(x)
-    nNeighboursNot <- NULL
+    nNeighboursNot <- value <- NULL
     
     if (greyscaleImage)
-    {
         operator <- ifelse(binary(kernel), "i", "+")
-        value <- NULL
-    }
     else
     {
-        if (all(dim(kernel) <= 3))
-            nNeighboursNot <- 0
         operator <- "i"
-        value <- 0
+        if (kernel[ceiling(length(kernel)/2)] != 0)
+        {
+            value <- 0
+            if (all(dim(kernel) <= 3))
+                nNeighboursNot <- 0
+        }
     }
     
     return (morph(x, kernel, operator=operator, merge="max", value=value, nNeighboursNot=nNeighboursNot))

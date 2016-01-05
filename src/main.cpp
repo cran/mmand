@@ -1,12 +1,13 @@
-#include <RcppArmadillo.h>
+#include <RcppEigen.h>
 
+#include "Componenter.h"
 #include "Resampler.h"
 #include "Morpher.h"
 
 using namespace Rcpp;
 using namespace std;
 
-Array * arrayFromData (SEXP data_)
+Array<double> * arrayFromData (SEXP data_)
 {
     NumericVector data(data_);
     
@@ -19,7 +20,7 @@ Array * arrayFromData (SEXP data_)
         dim[0] = data.length();
     }
         
-    Array *array = new Array(as<dbl_vector>(data), dim);
+    Array<double> *array = new Array<double>(dim, as<dbl_vector>(data));
     return array;
 }
 
@@ -64,15 +65,39 @@ BEGIN_RCPP
 END_RCPP
 }
 
+RcppExport SEXP is_symmetric (SEXP data_)
+{
+BEGIN_RCPP
+    NumericVector data(data_);
+    bool isSymmetric = true;
+    
+    for (int i=0; i<data.length()/2; i++)
+    {
+        if (!R_IsNA(data[i]) && data[i] != data[data.length()-i-1])
+        {
+            isSymmetric = false;
+            break;
+        }
+    }
+    
+    return wrap(isSymmetric);
+END_RCPP
+}
+
 RcppExport SEXP get_neighbourhood (SEXP data_, SEXP width_)
 {
 BEGIN_RCPP
-    Array *array = arrayFromData(data_);
+    Array<double> *array = arrayFromData(data_);
     Neighbourhood neighbourhood = array->getNeighbourhood(as<int_vector>(width_));
     
     delete array;
     
-    return List::create(Named("widths")=neighbourhood.widths, Named("size")=neighbourhood.size, Named("locs")=neighbourhood.locs, Named("offsets")=neighbourhood.offsets);
+    const int size = static_cast<int>(neighbourhood.size);
+    std::vector<double> offsets(size);
+    for (int i=0; i<size; i++)
+        offsets[i] = static_cast<double>(neighbourhood.offsets[i]);
+    
+    return List::create(Named("widths")=neighbourhood.widths, Named("size")=size, Named("locs")=neighbourhood.locs, Named("offsets")=offsets);
 END_RCPP
 }
 
@@ -95,7 +120,7 @@ END_RCPP
 RcppExport SEXP resample (SEXP data_, SEXP kernel_, SEXP samplingScheme_)
 {
 BEGIN_RCPP
-    Array *array = arrayFromData(data_);
+    Array<double> *array = arrayFromData(data_);
     Kernel *kernel = kernelFromElements(kernel_);
     Resampler resampler(array, kernel);
     
@@ -104,7 +129,7 @@ BEGIN_RCPP
     SamplingScheme *sampler = NULL;
     
     if (schemeType.compare("general") == 0)
-        sampler = new GeneralSamplingScheme(as<arma::mat>(samplingScheme["points"]));
+        sampler = new GeneralSamplingScheme(as<Eigen::MatrixXd>(samplingScheme["points"]));
     else if (schemeType.compare("grid") == 0)
     {
         List points = samplingScheme["points"];
@@ -123,9 +148,9 @@ END_RCPP
 RcppExport SEXP morph (SEXP data_, SEXP kernel_, SEXP elementOp_, SEXP mergeOp_, SEXP restrictions_)
 {
 BEGIN_RCPP
-    Array *array = arrayFromData(data_);
+    Array<double> *array = arrayFromData(data_);
     
-    Array *kernelArray = arrayFromData(kernel_);
+    Array<double> *kernelArray = arrayFromData(kernel_);
     DiscreteKernel *kernel = new DiscreteKernel(kernelArray);
     
     const string elementOpString = as<string>(elementOp_);
@@ -167,5 +192,19 @@ BEGIN_RCPP
     morpher.setValidValues(as<dbl_vector>(restrictions["value"]), as<dbl_vector>(restrictions["valueNot"]));
     vector<double> &samples = morpher.run();
     return wrap(samples);
+END_RCPP
+}
+
+RcppExport SEXP connected_components (SEXP data_, SEXP kernel_)
+{
+BEGIN_RCPP
+    Array<double> *array = arrayFromData(data_);
+    
+    Array<double> *kernelArray = arrayFromData(kernel_);
+    DiscreteKernel *kernel = new DiscreteKernel(kernelArray);
+    
+    Componenter componenter(array, kernel);
+    vector<int> &labels = componenter.run();
+    return wrap(labels);
 END_RCPP
 }

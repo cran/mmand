@@ -35,16 +35,16 @@ public:
 class DiscreteKernel : public Kernel
 {
 protected:
-    Array *values;
+    Array<double> *values;
     
 public:
-    DiscreteKernel (Array * const values)
+    DiscreteKernel (Array<double> * const values)
         : values(values)
     {
         supportMin = 0.0;
         supportMax = 0.0;
         
-        const std::vector<int> &dims = values->getDims();
+        const std::vector<int> &dims = values->getDimensions();
         for (std::vector<int>::const_iterator i = dims.begin(); i != dims.end(); i++)
         {
             double currentSupportMax = floor(static_cast<double>(*i) / 2.0);
@@ -58,7 +58,7 @@ public:
         delete values;
     }
     
-    Array * getArray () const { return values; }
+    Array<double> * getArray () const { return values; }
 };
 
 // General polynomial kernel
@@ -70,13 +70,13 @@ private:
     
 protected:
     int degree;
-    arma::vec coefficients;
+    Eigen::VectorXd coefficients;
     
 public:
-    PolynomialKernel (const arma::vec &coefficients, const double supportMin, const double supportMax)
+    PolynomialKernel (const Eigen::VectorXd &coefficients, const double supportMin, const double supportMax)
         : Kernel(supportMin,supportMax), coefficients(coefficients)
     {
-        this->degree = coefficients.n_elem - 1;
+        this->degree = coefficients.size() - 1;
     }
     
     double evaluate (const double x) const;
