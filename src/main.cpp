@@ -1,4 +1,4 @@
-#include <RcppEigen.h>
+#include <Rcpp.h>
 
 #include "Componenter.h"
 #include "Resampler.h"
@@ -123,25 +123,27 @@ BEGIN_RCPP
     Array<double> *array = arrayFromData(data_);
     Kernel *kernel = kernelFromElements(kernel_);
     Resampler resampler(array, kernel);
-    
+
     List samplingScheme(samplingScheme_);
     string schemeType = as<string>(samplingScheme["type"]);
-    SamplingScheme *sampler = NULL;
     
     if (schemeType.compare("general") == 0)
-        sampler = new GeneralSamplingScheme(as<Eigen::MatrixXd>(samplingScheme["points"]));
+    {
+        NumericMatrix points = samplingScheme["points"];
+        const dbl_vector &samples = resampler.run(points);
+        return wrap(samples);
+    }
     else if (schemeType.compare("grid") == 0)
     {
         List points = samplingScheme["points"];
         vector<dbl_vector> samplingVector(points.length());
         for (int i=0; i<points.length(); i++)
             samplingVector[i] = as<dbl_vector>(points[i]);
-        sampler = new GriddedSamplingScheme(samplingVector);
+        const dbl_vector &samples = resampler.run(samplingVector);
+        return wrap(samples);
     }
-    
-    resampler.setSamplingScheme(sampler);
-    vector<double> &samples = resampler.run();
-    return wrap(samples);
+    else
+        throw std::runtime_error("Scheme type unsupported");
 END_RCPP
 }
 

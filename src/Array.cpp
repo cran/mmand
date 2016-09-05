@@ -1,6 +1,40 @@
-#include <RcppEigen.h>
+#include <Rcpp.h>
 
 #include "Array.h"
+
+template <typename DataType>
+size_t Array<DataType>::countLines (const int dim) const
+{
+    size_t n = 1;
+    for (int i=0; i<nDims; i++)
+    {
+        if (i != dim)
+            n *= dims[i];
+    }
+    return n;
+}
+
+template <typename DataType>
+size_t Array<DataType>::lineOffset (const size_t n, const int dim) const
+{
+    std::vector<int> loc(nDims);
+    size_t result, stride = 1;
+    
+    for (int i=0; i<nDims; i++)
+    {
+        if (i == dim)
+            loc[i] = 0;
+        else
+        {
+            // Usual stride doesn't apply because we're missing out one dimension
+            loc[i] = (n / stride) % dims[i];
+            stride *= dims[i];
+        }
+    }
+    
+    flattenIndex(loc, result);
+    return result;
+}
 
 template <typename DataType>
 Neighbourhood Array<DataType>::getNeighbourhood () const
@@ -38,7 +72,7 @@ Neighbourhood Array<DataType>::getNeighbourhood (const std::vector<int> &widths)
         steps[i+1] = steps[i] * dims[i];
     }
     
-    neighbourhood.locs.resize(neighbourhood.size, nDims);
+    neighbourhood.locs = Rcpp::IntegerMatrix(neighbourhood.size, nDims);
     neighbourhood.offsets.resize(neighbourhood.size);
     
     for (int j=0; j<neighbourhood.size; j++)
@@ -94,16 +128,9 @@ void Array<DataType>::flattenIndex (const std::vector<int> &loc, size_t &result)
         
         default:
         {
-            size_t temp;
             result = loc[0];
-            
             for (int i=1; i<nDims; i++)
-            {
-                temp = loc[i];
-                for (int j=0; j<i; j++)
-                    temp *= dims[j];
-                result += temp;
-            }
+                result += loc[i] * strides[i];
         }
     }
 }
@@ -111,16 +138,9 @@ void Array<DataType>::flattenIndex (const std::vector<int> &loc, size_t &result)
 template <typename DataType>
 void Array<DataType>::expandIndex (const size_t &loc, std::vector<int> &result) const
 {
-    size_t temp;
     result[0] = loc % dims[0];
-    
     for (int i=1; i<nDims; i++)
-    {
-        temp = 1;
-        for (int j=0; j<i; j++)
-            temp *= dims[j];
-        result[i] = (loc / temp) % dims[i];
-    }
+        result[i] = (loc / strides[i]) % dims[i];
 }
 
 // Tell the compiler that we're going to need these specialisations (otherwise
