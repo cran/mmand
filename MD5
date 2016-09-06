@@ -1,6 +1,6 @@
-510f2d3c7fbd20544fd35363e0b66f8d *DESCRIPTION
+29aa6a012d84455cad6ffcce8f539774 *DESCRIPTION
 a4b739b05a07fefb7485eef8863b8205 *NAMESPACE
-0cf6484e3723e5b39e9e80e141705989 *NEWS
+7a59970ff352f487b5286088cee7c50f *NEWS
 7489c230cd5e43e903bd49bd63d2c733 *R/automata.R
 8a7be603830123a560b957ec4bdf6e0c *R/components.R
 ac481be061e7c996acbfe7c91f99ac8c *R/display.R
@@ -37,7 +37,7 @@ a984ea727990e9ae9803df107c9287ac *src/Kernel.cpp
 4959638744d9f46129e33fb08f57ee3b *src/Morpher.cpp
 34856cbb6459b9246141e2c13b386d32 *src/Morpher.h
 93f2bffacb04fdb40540bd8ff0df25cb *src/Resampler.cpp
-e5276bdaaafa08e9a470e57f851963ac *src/Resampler.h
+28140cab97bafb68596968bd9f7948ce *src/Resampler.h
 c38a3caaf8b93ce4ddc90293dcedb420 *src/lemon/adaptors.h
 f525e4f9a93914382646d240248e5a40 *src/lemon/assert.h
 5790b524ee1a906f52f4221ef2764a24 *src/lemon/bfs.h
