@@ -7,9 +7,10 @@
 \usage{
 morph(x, kernel, ...)
 
-\method{morph}{default}(x, kernel, operator = c("+", "-", "*", "i", "1", "0"),
-  merge = c("sum", "min", "max", "mean", "median"), value = NULL,
-  valueNot = NULL, nNeighbours = NULL, nNeighboursNot = NULL, ...)
+\method{morph}{default}(x, kernel, operator = c("+", "-", "*", "i", "1", "0",
+  "=="), merge = c("sum", "min", "max", "mean", "median", "all", "any"),
+  value = NULL, valueNot = NULL, nNeighbours = NULL,
+  nNeighboursNot = NULL, renormalise = TRUE, ...)
 }
 \arguments{
 \item{x}{Any object. For the default method, this must be coercible to an
@@ -21,11 +22,15 @@ not have to be isotropic in size. The kernel's dimensionality may be less
 than that of the target array, \code{x}. See \code{\link{kernels}} for
 kernel-generating functions.}
 
+\item{\dots}{Additional arguments to methods.}
+
 \item{operator}{The operator applied elementwise within the kernel, as a
 function of the original image value and the kernel value. Arithmetic
 operators are as usual; \code{"i"} is the identity operator, where every
-value within the kernel will be included as-is; and \code{1} and \code{0}
-include a 1 or 0 for each element within the kernel's nonzero region.}
+value within the kernel will be included as-is; \code{"1"} and \code{"0"}
+include a 1 or 0 for each element within the kernel's nonzero region;
+\code{"=="} produces a 1 where the image matches the kernel, and 0
+elsewhere.}
 
 \item{merge}{The operator applied to combine the elements into a final value
 for the centre pixel. All have their usual meanings.}
@@ -46,7 +51,10 @@ where the kernel will be applied. Takes priority over
 of nonzero neighbours (including diagonal neighbours) for array elements
 where the kernel will be applied.}
 
-\item{\dots}{Additional arguments to methods.}
+\item{renormalise}{If \code{TRUE}, the default, and \code{merge} is
+\code{"sum"}, the sum will be renormalised relative to the sum over the
+visited part of the kernel. This avoids low-intensity bands around the
+edges of a morphed image.}
 }
 \value{
 A morphed array with the same dimensions as the original array.
@@ -57,9 +65,6 @@ applying the kernel to a particular array element can be made conditional on
 its value, or the number of nonzero immediate neighbours that it has. The
 \code{morph} function is (S3) generic.
 }
-\author{
-Jon Clayden <code@clayden.org>
-}
 \seealso{
 \code{\link{kernels}} for kernel-generating functions, and
   \code{\link{morphology}} for more specific mathematical morphology
@@ -68,4 +73,6 @@ Jon Clayden <code@clayden.org>
   automaton. See also the \code{kernel} and \code{kernapply} functions in
   the \code{stats} package, particularly if you want to smooth time series.
 }
-
+\author{
+Jon Clayden <code@clayden.org>
+}

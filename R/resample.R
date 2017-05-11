@@ -37,8 +37,8 @@ resample <- function (x, points, kernel, ...)
 resample.default <- function (x, points, kernel, pointType = c("auto","general","grid"), ...)
 {
     x <- as.array(x)
-    if (!is.numeric(x))
-        report(OL$Error, "Target array must be numeric")
+    if (!is.numeric(x) && !is.logical(x))
+        stop("Target array must be numeric")
     
     if (!isKernelFunction(kernel))
         kernel <- kernelFunction(kernel, ...)
@@ -50,9 +50,9 @@ resample.default <- function (x, points, kernel, pointType = c("auto","general",
     
     pointType <- match.arg(pointType)
     if (pointType == "general" && (!is.matrix(points) || ncol(points) != nDims))
-        report(OL$Error, "Points must be specified as a matrix with #{nDims} columns")
+        stop("Points must be specified as a matrix with #{nDims} columns")
     else if (pointType == "grid" && (!is.list(points) || length(points) != nDims))
-        report(OL$Error, "Points must be specified as a list of length #{nDims}")
+        stop("Points must be specified as a list of length #{nDims}")
     else if (pointType == "auto")
     {
         if (is.matrix(points) && ncol(points) == nDims)
@@ -60,7 +60,7 @@ resample.default <- function (x, points, kernel, pointType = c("auto","general",
         else if (is.list(points) && length(points) == nDims)
             pointType <- "grid"
         else
-            report(OL$Error, "Point specification is not valid")
+            stop("Point specification is not valid")
     }
     
     if (is.matrix(points))
@@ -68,7 +68,7 @@ resample.default <- function (x, points, kernel, pointType = c("auto","general",
     else if (is.list(points))
         points <- lapply(points, "-", 1)
     
-    result <- .Call("resample", x, kernel, list(type=pointType,points=points), PACKAGE="mmand")
+    result <- .Call(C_resample, x, kernel, list(type=pointType,points=points))
     
     if (is.list(points) && nDims > 1)
         dim(result) <- sapply(points, length)
@@ -125,7 +125,7 @@ neighbourhood <- function (x, width)
     if (length(width) < nDims)
         width <- rep(width, length.out=nDims)
     if (any(width > dim(x)))
-        report(OL$Error, "Requested neighbourhood is larger than the data")
+        stop("Requested neighbourhood is larger than the data")
     
-    return (.Call("get_neighbourhood", x, as.integer(width), PACKAGE="mmand"))
+    return (.Call(C_get_neighbourhood, x, as.integer(width)))
 }

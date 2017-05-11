@@ -34,7 +34,8 @@
 #' recommended by Mitchell and Netravali as a good trade-off between various
 #' artefacts, but other well-known special cases include B=1, C=0 (the cubic
 #' B-spline) and B=0, C=0.5 (the Catmull-Rom spline). \code{mnKernel} is a
-#' shorter alias for \code{mitchellNetravaliKernel}.
+#' shorter alias for \code{mitchellNetravaliKernel}. Finally, the Lanczos
+#' kernel is a five-lobe windowed sinc function.
 #' 
 #' @param object Any object.
 #' @param values A numeric vector or array, containing the values of the kernel
@@ -128,7 +129,6 @@ isKernelFunction <- function (object)
 #'   side-effects.
 #' 
 #' @examples
-#' 
 #' sampleKernelFunction(mnKernel(), -2:2)
 #' plot(mnKernel())
 #' @author Jon Clayden <code@@clayden.org>
@@ -137,9 +137,9 @@ isKernelFunction <- function (object)
 sampleKernelFunction <- function (kernel, values)
 {
     if (!isKernelFunction(kernel))
-        report(OL$Error, "Specified kernel is not a valid kernel function")
+        stop("Specified kernel is not a valid kernel function")
     
-    return (.Call("sample_kernel", kernel, as.numeric(values), PACKAGE="mmand"))
+    return (.Call(C_sample_kernel, kernel, as.numeric(values)))
 }
 
 #' @rdname sampleKernelFunction
@@ -177,12 +177,12 @@ kernelArray <- function (values)
     if (isKernelArray(values))
         return (values)
     else if (isKernelFunction(values))
-        report(OL$Error, "Kernel function cannot be converted to a kernel array")
+        stop("Kernel function cannot be converted to a kernel array")
     else
     {
         values <- as.array(values)
-        if (!is.numeric(values))
-            report(OL$Error, "Kernel must be numeric")
+        if (!is.numeric(values) && !is.logical(values))
+            stop("Kernel must be numeric")
         storage.mode(values) <- "double"
         return (structure(values, class=c("kernelArray","kernel")))
     }
@@ -270,7 +270,7 @@ gaussianKernel <- function (sigma, dim = length(sigma), size = 6*sigma, normalis
 sobelKernel <- function (dim, axis = 1)
 {
     if (!(axis %in% 0:dim))
-        report(OL$Error, "The axis should be between 0 and #{dim}")
+        stop("The axis should be between 0 and #{dim}")
     
     parts <- rep(list(c(1,2,1) / 4), dim)
     if (axis > 0)
@@ -282,16 +282,16 @@ sobelKernel <- function (dim, axis = 1)
 
 #' @rdname kernels
 #' @export
-kernelFunction <- function (name = c("box","triangle","mitchell-netravali"), ...)
+kernelFunction <- function (name = c("box","triangle","mitchell-netravali","lanczos"), ...)
 {
     if (is.character(name))
         name <- match.arg(name)
     else if (isKernelFunction(name))
         return (name)
     else if (isKernelArray(name))
-        report(OL$Error, "Kernel array cannot be converted to a kernel function")
+        stop("Kernel array cannot be converted to a kernel function")
     else
-        report(OL$Error, "Kernel function specification is not valid")
+        stop("Kernel function specification is not valid")
     
     return (structure(list(name=name, ...), class=c("kernelFunction","kernel")))
 }
@@ -320,3 +320,10 @@ mitchellNetravaliKernel <- function (B = 1/3, C = 1/3)
 #' @rdname kernels
 #' @export
 mnKernel <- mitchellNetravaliKernel
+
+#' @rdname kernels
+#' @export
+lanczosKernel <- function ()
+{
+    return (kernelFunction("lanczos"))
+}

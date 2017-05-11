@@ -15,6 +15,7 @@ and `resample()`.
 - [Test image](#test-image)
 - [Mathematical morphology](#mathematical-morphology)
 - [Greyscale morphology](#greyscale-morphology)
+- [Skeletonisation](#skeletonisation)
 - [Smoothing](#smoothing)
 - [Connected components](#connected-components)
 - [Resampling](#resampling)
@@ -26,13 +27,15 @@ used for demonstration below. It can be read in and displayed using the code
 
 ```R
 library(mmand)
-library(png)
+library(loder)
 
-fan <- readPNG(system.file("images", "fan.png", package="mmand"))
+fan <- readPng(system.file("images", "fan.png", package="mmand"))
 display(fan)
 ```
 
-![Fan test image](http://www.clayden.org/files/mmand/fan.png)
+![Fan test image](tools/figures/fan.png)
+
+Here we are using the [loder](https://github.com/jonclayden/loder) package to read the PNG file.
 
 ## Mathematical morphology
 
@@ -108,7 +111,7 @@ k <- shapeKernel(c(3,3), type="diamond")
 display(erode(fan, k))
 ```
 
-![Eroded fan image](http://www.clayden.org/files/mmand/fan_eroded.png)
+![Eroded fan image](tools/figures/fan_eroded.png)
 
 Notice that darker areas appear enlarged. In this case the kernel is itself a 
 2D array (or matrix), and unlike the 1D case there is a choice of plausible 
@@ -123,7 +126,7 @@ display(erode(fan, k))
 ```
 
 ![Eroded fan image, 7x7 
-kernel](http://www.clayden.org/files/mmand/fan_eroded_77.png)
+kernel](tools/figures/fan_eroded_77.png)
 
 In the case above, the diamond shape of the kernel is obvious in areas where 
 the kernel is larger than the eroded features.
@@ -137,7 +140,7 @@ display(erode(fan, k))
 ```
 
 ![Eroded fan image, 7x3 
-kernel](http://www.clayden.org/files/mmand/fan_eroded_73.png)
+kernel](tools/figures/fan_eroded_73.png)
 
 The effect of dilation is complementary, shrinking dark regions and enlarging 
 bright ones:
@@ -147,7 +150,7 @@ k <- shapeKernel(c(3,3), type="diamond")
 display(dilate(fan, k))
 ```
 
-![Dilated fan image](http://www.clayden.org/files/mmand/fan_dilated.png)
+![Dilated fan image](tools/figures/fan_dilated.png)
 
 In this case the low-intensity and narrow handwriting towards the middle of the 
 fan has all but disappeared.
@@ -163,7 +166,7 @@ display(dilate(fan,k) - erode(fan,k))
 ```
 
 ![Morphological gradient of the fan 
-image](http://www.clayden.org/files/mmand/fan_gradient.png)
+image](tools/figures/fan_gradient.png)
 
 The [Sobel filter](http://en.wikipedia.org/wiki/Sobel_operator) has a similar
 effect.
@@ -172,7 +175,37 @@ effect.
 display(sobelFilter(fan))
 ```
 
-![Sobel filtered fan image](http://www.clayden.org/files/mmand/fan_sobel.png)
+![Sobel filtered fan image](tools/figures/fan_sobel.png)
+
+## Skeletonisation
+
+[Topological skeletonisation](https://en.wikipedia.org/wiki/Topological_skeleton)
+is the process of thinning a shape to a medial line or surface representing the
+approximate path of the original. It can be thought of as the result of
+repeated erosion, up to the point where only a "core" of the shape exists. It
+is usually applied to binary data.
+
+As of version 1.5.0, the `mmand` package offers three different skeletonisation
+algorithms, with different advantages and limitations. (Please see the
+documentation at `?skeletonise` for details.) Below we see the results of
+applying each of them in turn to the outline of a capital letter B.
+
+```R
+library(loder)
+B <- readPng(system.file("images", "B.png", package="mmand"))
+k <- shapeKernel(c(3,3), type="diamond")
+
+display(B)
+display(skeletonise(B,k,method="lantuejoul"), col="red", add=TRUE)
+```
+
+![Skeletonised capital B](tools/figures/skeletonisation.png)
+
+The B is shown alone first, and then with the three skeletons overlaid in red.
+(Only the code for generating the first is shown.) Notice that all three
+skeletons are reasonable medial paths, but the centre one (using Beucher's
+formula) is a little thicker than the others in most places, and only the right
+one (using the hit-or-miss transform) is fully self-connected.
 
 ## Smoothing
 
@@ -200,7 +233,7 @@ axis(1, (0:4)*pi, expression(0,pi,2*pi,3*pi,4*pi))
 lines(x, y_smoothed, lwd=2)
 ```
 
-![Smoothed cosine data](http://www.clayden.org/files/mmand/cos_smoothed.png)
+![Smoothed cosine data](tools/figures/cos_smoothed.png)
 
 It should be borne in mind that the second argument to the `gaussianSmooth()` 
 function is the *standard deviation* of the smoothing Gaussian kernel in each 
@@ -214,7 +247,7 @@ effect is to blur the picture. Indeed, this operation is sometimes called
 display(gaussianSmooth(fan, c(3,3)))
 ```
 
-![Smoothed fan image](http://www.clayden.org/files/mmand/fan_smoothed.png)
+![Smoothed fan image](tools/figures/fan_smoothed.png)
 
 An alternative approach to noise reduction is
 [median filtering](http://en.wikipedia.org/wiki/Median_filter), and `mmand`
@@ -226,7 +259,7 @@ display(medianFilter(fan, k))
 ```
 
 ![Median filtered fan 
-image](http://www.clayden.org/files/mmand/fan_median_filtered.png)
+image](tools/figures/fan_median_filtered.png)
 
 This method is typically better at preserving edges in the image, which can be 
 desirable in some applications.
@@ -255,7 +288,7 @@ display(fan_thresholded)
 ```
 
 ![Thresholded fan 
-image](http://www.clayden.org/files/mmand/fan_thresholded.png)
+image](tools/figures/fan_thresholded.png)
 
 We can then find the connected components. In this case the kernel determines
 which pixels are deemed to be neighbours. For example,
@@ -272,7 +305,7 @@ display(fan_components, col=rainbow(max(fan_components,na.rm=TRUE)))
 ```
 
 ![Connected components of fan 
-image](http://www.clayden.org/files/mmand/fan_components.png)
+image](tools/figures/fan_components.png)
 
 As we might expect, the largest components—which label only the "on" areas of
 the image—correspond to (most of) the ring of fan blades, and the bright part
@@ -333,7 +366,7 @@ plot(mitchellNetravaliKernel(1/3, 1/3))
 ```
 
 ![Mitchell-Netravali kernel 
-profile](http://www.clayden.org/files/mmand/mn_profile.png)
+profile](tools/figures/mn_profile.png)
 
 In higher dimensions, the resampled point locations can be passed to 
 `resample()` either as a matrix giving the points to sample at, one per row, or 
@@ -345,16 +378,16 @@ given scale factor. Here, we can use it to scale a smaller version of the fan
 image up to the size of the larger version:
 
 ```R
-library(png)
+library(loder)
 
-fan_small <- readPNG(system.file("images", "fan-small.png", package="mmand"))
+fan_small <- readPng(system.file("images", "fan-small.png", package="mmand"))
 dim(fan_small)
 # [1] 128 128
 
 display(rescale(fan_small, 4, mnKernel()))
 ```
 
-![Scaled-up fan image](http://www.clayden.org/files/mmand/fan_scaled.png)
+![Scaled-up fan image](tools/figures/fan_scaled.png)
 
 The scaled-up image of course has less detail than the original 512x512 pixel 
 version, since it is based on 16 times fewer data points, but the general 

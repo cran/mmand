@@ -36,6 +36,8 @@ Kernel * kernelFromElements (SEXP kernel_)
         kernel = KernelGenerator::triangle();
     else if (kernelName.compare("mitchell-netravali") == 0)
         kernel = KernelGenerator::mitchellNetravali(as<double>(kernelElements["B"]), as<double>(kernelElements["C"]));
+    else if (kernelName.compare("lanczos") == 0)
+        kernel = KernelGenerator::lanczos();
     
     return kernel;
 }
@@ -61,7 +63,10 @@ BEGIN_RCPP
         }
     }
     
-    return wrap(isBinary);
+    RObject result = wrap(isBinary);
+    if (isBinary)
+        result.attr("value") = nonzeroValue;
+    return result;
 END_RCPP
 }
 
@@ -147,7 +152,7 @@ BEGIN_RCPP
 END_RCPP
 }
 
-RcppExport SEXP morph (SEXP data_, SEXP kernel_, SEXP elementOp_, SEXP mergeOp_, SEXP restrictions_)
+RcppExport SEXP morph (SEXP data_, SEXP kernel_, SEXP elementOp_, SEXP mergeOp_, SEXP restrictions_, SEXP renormalise_)
 {
 BEGIN_RCPP
     Array<double> *array = arrayFromData(data_);
@@ -169,6 +174,8 @@ BEGIN_RCPP
         elementOp = OneOp;
     else if (elementOpString.compare("0") == 0)
         elementOp = ZeroOp;
+    else if (elementOpString.compare("==") == 0)
+        elementOp = EqualOp;
     else
         throw new runtime_error("Unsupported element operation specified");
     
@@ -184,6 +191,10 @@ BEGIN_RCPP
         mergeOp = MeanOp;
     else if (mergeOpString.compare("median") == 0)
         mergeOp = MedianOp;
+    else if (mergeOpString.compare("all") == 0)
+        mergeOp = AllOp;
+    else if (mergeOpString.compare("any") == 0)
+        mergeOp = AnyOp;
     else
         throw new runtime_error("Unsupported merge operation specified");
     
@@ -192,6 +203,7 @@ BEGIN_RCPP
     List restrictions(restrictions_);
     morpher.setValidNeighbourhoods(as<int_vector>(restrictions["nNeighbours"]), as<int_vector>(restrictions["nNeighboursNot"]));
     morpher.setValidValues(as<dbl_vector>(restrictions["value"]), as<dbl_vector>(restrictions["valueNot"]));
+    morpher.shouldRenormalise(as<bool>(renormalise_));
     vector<double> &samples = morpher.run();
     return wrap(samples);
 END_RCPP
@@ -209,4 +221,22 @@ BEGIN_RCPP
     vector<int> &labels = componenter.run();
     return wrap(labels);
 END_RCPP
+}
+
+static R_CallMethodDef callMethods[] = {
+    { "is_binary",              (DL_FUNC) &is_binary,               1 },
+    { "is_symmetric",           (DL_FUNC) &is_symmetric,            1 },
+    { "get_neighbourhood",      (DL_FUNC) &get_neighbourhood,       2 },
+    { "sample_kernel",          (DL_FUNC) &sample_kernel,           2 },
+    { "resample",               (DL_FUNC) &resample,                3 },
+    { "morph",                  (DL_FUNC) &morph,                   6 },
+    { "connected_components",   (DL_FUNC) &connected_components,    2 },
+    { NULL, NULL, 0 }
+};
+
+extern "C" void R_init_mmand (DllInfo *info)
+{
+    R_registerRoutines(info, NULL, callMethods, NULL, NULL);
+    R_useDynamicSymbols(info, FALSE);
+    R_forceSymbols(info, TRUE);
 }
