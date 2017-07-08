@@ -1,6 +1,6 @@
-b96433fdddd45ec10da2d1fbe21b0d12 *DESCRIPTION
+fc0ec4ba83ef4c38782fe754cc882e1f *DESCRIPTION
 610c22c317dfc20f7971405c54895a27 *NAMESPACE
-74d99695febff474075006068d9137d9 *NEWS
+1dfe37a98efe3082b9555f1f82d33511 *NEWS
 fa07ec879883dc2fe8548daecbf0a99a *R/automata.R
 66ebbb5f2d0273274e53f14d71b8f192 *R/components.R
 0f9e2042176f15609c962236d9cedf2e *R/display.R
@@ -32,8 +32,8 @@ fcb40d6ff36adb84ef43d2093b58d4a3 *man/symmetric.Rd
 7964109fdeb82982667579b078670a59 *man/threshold.Rd
 bdd4c977cf11ffa1c9cabbb5f7e155bd *src/Array.cpp
 aae1af8adaf07bcd7467b35808fef123 *src/Array.h
-974d869f67d891549bb5ac4d261edc73 *src/Componenter.cpp
-e074795b0a31033bae2f6547d0120858 *src/Componenter.h
+d88027ea3b39e3bc64ebf0a3ea517861 *src/Componenter.cpp
+bdb74084873421312d54b4ead9dee595 *src/Componenter.h
 07c40b6defa26c3a70200731fe7099af *src/Kernel.cpp
 a78ee0868cc18875740697e2c77bdb7a *src/Kernel.h
 2aae684484200a73aadc5bd0e3980e2e *src/Makevars
@@ -107,7 +107,7 @@ c0ef4a9d884b1041f88d9f63766c424d *tests/testthat/sobel_kernel_2d.rds
 01adcd6a9674ecbf8148991b0ed1d95a *tests/testthat/test-10-morph.R
 0aebbe0eb7a2a53298ce7225b5bac64a *tests/testthat/test-15-automata.R
 fb18a3e3672fa11f3fcbf284f6c58e56 *tests/testthat/test-20-resample.R
-d0e7ec5d025c9ddce588cf05d68dc10a *tests/testthat/test-25-components.R
+3764faf8b938e298d7607af67614119a *tests/testthat/test-25-components.R
 3c81d28b597b0b0d66af3ab1fa8a5bd7 *tests/testthat/triangle_function.rds
 ba58b72c57b090619171a3929a45680c *tools/figures/cos_smoothed.png
 8547dc7083dbc39c7fe6b319ce1bf2a2 *tools/figures/fan.png
