@@ -1,6 +1,6 @@
-fc0ec4ba83ef4c38782fe754cc882e1f *DESCRIPTION
+4e6d1a5a9a9c1fc8a6f34edb4d7a00c7 *DESCRIPTION
 610c22c317dfc20f7971405c54895a27 *NAMESPACE
-1dfe37a98efe3082b9555f1f82d33511 *NEWS
+50a01738ea6b4167c0f928b21e4d66c4 *NEWS
 fa07ec879883dc2fe8548daecbf0a99a *R/automata.R
 66ebbb5f2d0273274e53f14d71b8f192 *R/components.R
 0f9e2042176f15609c962236d9cedf2e *R/display.R
@@ -39,7 +39,7 @@ a78ee0868cc18875740697e2c77bdb7a *src/Kernel.h
 2aae684484200a73aadc5bd0e3980e2e *src/Makevars
 4064945cb0c72ddc3099c9537245cebc *src/Morpher.cpp
 8dfd259341004d41f7bf41f403b0943f *src/Morpher.h
-efd2cd98b01e30ad753ab8b7cffa979d *src/Resampler.cpp
+7d9681a6d7f6748d2b7cd8293d68c4c8 *src/Resampler.cpp
 d6f1c5a7faec68a6e4eaab680194a615 *src/Resampler.h
 c38a3caaf8b93ce4ddc90293dcedb420 *src/lemon/adaptors.h
 f525e4f9a93914382646d240248e5a40 *src/lemon/assert.h
@@ -106,7 +106,7 @@ c0ef4a9d884b1041f88d9f63766c424d *tests/testthat/sobel_kernel_2d.rds
 51f1f224d1576af099b779d1b6057eb9 *tests/testthat/test-05-kernels.R
 01adcd6a9674ecbf8148991b0ed1d95a *tests/testthat/test-10-morph.R
 0aebbe0eb7a2a53298ce7225b5bac64a *tests/testthat/test-15-automata.R
-fb18a3e3672fa11f3fcbf284f6c58e56 *tests/testthat/test-20-resample.R
+28e8819eafb9ce61ee76da2dc77af7c4 *tests/testthat/test-20-resample.R
 3764faf8b938e298d7607af67614119a *tests/testthat/test-25-components.R
 3c81d28b597b0b0d66af3ab1fa8a5bd7 *tests/testthat/triangle_function.rds
 ba58b72c57b090619171a3929a45680c *tools/figures/cos_smoothed.png
