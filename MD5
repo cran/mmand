@@ -1,6 +1,6 @@
-4e6d1a5a9a9c1fc8a6f34edb4d7a00c7 *DESCRIPTION
+0249b85a6f3ae07c826d6369e59db64b *DESCRIPTION
 610c22c317dfc20f7971405c54895a27 *NAMESPACE
-50a01738ea6b4167c0f928b21e4d66c4 *NEWS
+1da41eb910023af0917f43f55ae00dc9 *NEWS
 fa07ec879883dc2fe8548daecbf0a99a *R/automata.R
 66ebbb5f2d0273274e53f14d71b8f192 *R/components.R
 0f9e2042176f15609c962236d9cedf2e *R/display.R
@@ -9,6 +9,9 @@ e1695dcee8ac2c5febaaaef2d22915d1 *R/morph.R
 0a5528ceaa90c5d7dd773027b069032e *R/resample.R
 5bf7883634dd55064c12f4e389942d78 *R/zzz.R
 23d8b4b1b37471beda296774524beba3 *README.md
+89dcf0cee1584c29fd51c7bb99646940 *cleanup
+fec9335047cea34b9746e523d8a05042 *configure
+825b894828a67eda82d10e8b8e580717 *configure.ac
 de6d58d5b11353f047e47240495058b8 *inst/COPYRIGHTS
 2dd8f65ca3e3198c154aa77c6797e6fa *inst/images/B.png
 15c46d19d56ec1d644a0d08deb935347 *inst/images/fan-small.png
@@ -36,7 +39,8 @@ d88027ea3b39e3bc64ebf0a3ea517861 *src/Componenter.cpp
 bdb74084873421312d54b4ead9dee595 *src/Componenter.h
 07c40b6defa26c3a70200731fe7099af *src/Kernel.cpp
 a78ee0868cc18875740697e2c77bdb7a *src/Kernel.h
-2aae684484200a73aadc5bd0e3980e2e *src/Makevars
+3b1e899927a7c4ae676ad3222df916e1 *src/Makevars.in
+2aae684484200a73aadc5bd0e3980e2e *src/Makevars.win
 4064945cb0c72ddc3099c9537245cebc *src/Morpher.cpp
 8dfd259341004d41f7bf41f403b0943f *src/Morpher.h
 7d9681a6d7f6748d2b7cd8293d68c4c8 *src/Resampler.cpp
