@@ -1,17 +1,17 @@
-0249b85a6f3ae07c826d6369e59db64b *DESCRIPTION
+69ca6aeeff079bcecbb2c660faf629fd *DESCRIPTION
 610c22c317dfc20f7971405c54895a27 *NAMESPACE
-1da41eb910023af0917f43f55ae00dc9 *NEWS
+e976dbb6ab0d5c2ffbe30691b2046e5d *NEWS
 fa07ec879883dc2fe8548daecbf0a99a *R/automata.R
 66ebbb5f2d0273274e53f14d71b8f192 *R/components.R
 0f9e2042176f15609c962236d9cedf2e *R/display.R
 3e2eee6052f740057ad617fcab163e99 *R/kernels.R
-e1695dcee8ac2c5febaaaef2d22915d1 *R/morph.R
+38031c58d8162f757d0908bd64007c45 *R/morph.R
 0a5528ceaa90c5d7dd773027b069032e *R/resample.R
 5bf7883634dd55064c12f4e389942d78 *R/zzz.R
 23d8b4b1b37471beda296774524beba3 *README.md
 89dcf0cee1584c29fd51c7bb99646940 *cleanup
 fec9335047cea34b9746e523d8a05042 *configure
-825b894828a67eda82d10e8b8e580717 *configure.ac
+fa452933e28e25df0a0dbe578852a2da *configure.ac
 de6d58d5b11353f047e47240495058b8 *inst/COPYRIGHTS
 2dd8f65ca3e3198c154aa77c6797e6fa *inst/images/B.png
 15c46d19d56ec1d644a0d08deb935347 *inst/images/fan-small.png
@@ -69,7 +69,7 @@ b8e43698172e38f795a1abc3cd9c5a12 *src/lemon/concepts/digraph.h
 d15bc435e13cd91aa0bf94bfe113e11f *src/lemon/concepts/path.h
 6060e865577c0363b100c783387f9fba *src/lemon/config.h
 759be3a7d04b9c91974e76e6bcc2b0ad *src/lemon/connectivity.h
-4ed55def3a0765862e29a45a01265d28 *src/lemon/core.h
+07cd9d8abc2782db419c49e900602b40 *src/lemon/core.h
 3c8aeb80208ca9a6f9978c543b703b3c *src/lemon/dfs.h
 56dd9c64752c0afceb29826fdeeb9309 *src/lemon/dijkstra.h
 81abb94475fa9ccc674637b42ff5fc4c *src/lemon/error.h
@@ -128,3 +128,4 @@ d64b2e4c9e196a6451d1d433558a1c71 *tools/figures/fan_eroded_77.png
 4c1396ed7cf16720e0af8f71bf161d04 *tools/figures/fan_thresholded.png
 3614acbb412536238789c14dba103b5c *tools/figures/mn_profile.png
 01794f1fcdbfa080e97bf7e8c0b24ef0 *tools/figures/skeletonisation.png
+49e74c3d41fe34182aa4b1ad534cfd18 *tools/m4/ax_openmp.m4
