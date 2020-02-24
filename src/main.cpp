@@ -1,6 +1,7 @@
 #include <Rcpp.h>
 
 #include "Componenter.h"
+#include "Distancer.h"
 #include "Resampler.h"
 #include "Morpher.h"
 
@@ -21,6 +22,10 @@ Array<double> * arrayFromData (SEXP data_)
     }
         
     Array<double> *array = new Array<double>(dim, as<dbl_vector>(data));
+    
+    if (data.hasAttribute("pixdim"))
+        array->setPixelDimensions(as<dbl_vector>(data.attr("pixdim")));
+    
     return array;
 }
 
@@ -177,7 +182,7 @@ BEGIN_RCPP
     else if (elementOpString.compare("==") == 0)
         elementOp = EqualOp;
     else
-        throw new runtime_error("Unsupported element operation specified");
+        throw runtime_error("Unsupported element operation specified");
     
     const string mergeOpString = as<string>(mergeOp_);
     MergeOp mergeOp;
@@ -196,7 +201,7 @@ BEGIN_RCPP
     else if (mergeOpString.compare("any") == 0)
         mergeOp = AnyOp;
     else
-        throw new runtime_error("Unsupported merge operation specified");
+        throw runtime_error("Unsupported merge operation specified");
     
     Morpher morpher(array, kernel, elementOp, mergeOp);
     
@@ -223,6 +228,18 @@ BEGIN_RCPP
 END_RCPP
 }
 
+RcppExport SEXP distance_transform (SEXP data_, SEXP _usePixdim)
+{
+BEGIN_RCPP
+    Array<double> *array = arrayFromData(data_);
+    Distancer distancer(array, as<bool>(_usePixdim));
+    Array<double> *distances = distancer.run();
+    SEXP result = wrap(distances->getData());
+    delete distances;
+    return result;
+END_RCPP
+}
+
 static R_CallMethodDef callMethods[] = {
     { "is_binary",              (DL_FUNC) &is_binary,               1 },
     { "is_symmetric",           (DL_FUNC) &is_symmetric,            1 },
@@ -231,6 +248,7 @@ static R_CallMethodDef callMethods[] = {
     { "resample",               (DL_FUNC) &resample,                3 },
     { "morph",                  (DL_FUNC) &morph,                   6 },
     { "connected_components",   (DL_FUNC) &connected_components,    2 },
+    { "distance_transform",     (DL_FUNC) &distance_transform,      2 },
     { NULL, NULL, 0 }
 };
 

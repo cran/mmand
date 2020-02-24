@@ -1,3 +1,7 @@
+
+
+[![CRAN version](http://www.r-pkg.org/badges/version/mmand)](https://cran.r-project.org/package=mmand) [![Travis Build Status](https://travis-ci.org/jonclayden/mmand.svg?branch=master)](https://travis-ci.org/jonclayden/mmand) [![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/yp4nh0ubiq53n7gw?svg=true)](https://ci.appveyor.com/project/jonclayden/mmand) [![Coverage Status](https://coveralls.io/repos/github/jonclayden/mmand/badge.svg?branch=master)](https://coveralls.io/github/jonclayden/mmand?branch=master)
+
 # Mathematical Morphology in Any Number of Dimensions
 
 The `mmand` R package provides tools for performing mathematical morphology
@@ -18,6 +22,7 @@ and `resample()`.
 - [Skeletonisation](#skeletonisation)
 - [Smoothing](#smoothing)
 - [Connected components](#connected-components)
+- [The distance transform](#the-distance-transform)
 - [Resampling](#resampling)
 
 ## Test image
@@ -25,7 +30,8 @@ and `resample()`.
 A test image of a jet engine fan is available within the package, and will be 
 used for demonstration below. It can be read in and displayed using the code
 
-```R
+
+```r
 library(mmand)
 library(loder)
 
@@ -33,7 +39,7 @@ fan <- readPng(system.file("images", "fan.png", package="mmand"))
 display(fan)
 ```
 
-![Fan test image](tools/figures/fan.png)
+![plot of chunk fan](tools/figures/fan-1.png)
 
 Here we are using the [loder](https://github.com/jonclayden/loder) package to read the PNG file.
 
@@ -49,15 +55,14 @@ work on R arrays of any dimensionality, including one-dimensional vectors.
 The basic operations in mathematical morphology are *erosion* and *dilation*. A 
 simple one-dimensional example serves to illustrate their effects:
 
-```R
+
+```r
 x <- c(0,0,1,0,0,0,1,1,1,0,0)
 k <- c(1,1,1)
-
 erode(x,k)
-# [1] 0 0 0 0 0 0 0 1 0 0 0
-
+##  [1] 0 0 0 0 0 0 0 1 0 0 0
 dilate(x,k)
-# [1] 0 1 1 1 0 1 1 1 1 1 0
+##  [1] 0 1 1 1 0 1 1 1 1 1 0
 ```
 
 The `erode()` function "thins out" areas in the input vector, `x`, which were 
@@ -74,18 +79,19 @@ These apply both basic operations, using the same kernel, but in different
 orders: an opening is an erosion followed by a dilation, whereas a closing is a 
 dilation followed by an opening.
 
-```R
-opening(x,k)
-# [1] 0 0 0 0 0 0 1 1 1 0 0
 
+```r
+opening(x,k)
+##  [1] 0 0 0 0 0 0 1 1 1 0 0
 closing(x,k)
-# [1] 0 0 1 0 0 0 1 1 1 0 0
+##  [1] 0 0 1 0 0 0 1 1 1 0 0
 ```
 
 Notice that, in this case, the closing gets us back to where we started, 
 whereas the opening does not. This is because the initial erosion operation 
 removes the first "on" block entirely, so it cannot be recovered by the 
-subsequent dilation.
+subsequent dilation. Hence, the effect is to remove small features that are
+narrower than the kernel.
 
 ## Greyscale morphology
 
@@ -94,10 +100,11 @@ greyscale images, erosion replaces each nonzero pixel with the minimum value
 within the kernel when it is centred at that pixel, and dilation uses the 
 maximum. For example,
 
-```R
+
+```r
 x <- c(0,0,0.5,0,0,0,0.2,0.5,0.3,0,0)
 erode(x,k)
-# [1] 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.2 0.0 0.0 0.0
+##  [1] 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.2 0.0 0.0 0.0
 ```
 
 Notice that the remaining nonzero value is now reduced from 0.5 to 0.2, the 
@@ -106,12 +113,13 @@ a wider kernel, its final value would have dropped to zero.
 
 The effect is more intuitively demonstrated on a real two-dimensional image:
 
-```R
+
+```r
 k <- shapeKernel(c(3,3), type="diamond")
 display(erode(fan, k))
 ```
 
-![Eroded fan image](tools/figures/fan_eroded.png)
+![plot of chunk fan-eroded](tools/figures/fan-eroded-1.png)
 
 Notice that darker areas appear enlarged. In this case the kernel is itself a 
 2D array (or matrix), and unlike the 1D case there is a choice of plausible 
@@ -120,13 +128,13 @@ disc and diamond shaped kernels, and their higher-dimensional equivalents.
 
 Using a wider kernel exaggerates the effect:
 
-```R
+
+```r
 k <- shapeKernel(c(7,7), type="diamond")
 display(erode(fan, k))
 ```
 
-![Eroded fan image, 7x7 
-kernel](tools/figures/fan_eroded_77.png)
+![plot of chunk fan-eroded77](tools/figures/fan-eroded77-1.png)
 
 In the case above, the diamond shape of the kernel is obvious in areas where 
 the kernel is larger than the eroded features.
@@ -134,23 +142,24 @@ the kernel is larger than the eroded features.
 Note that the kernel may also be anisotropic, i.e. it may have a different 
 width in each dimension:
 
-```R
+
+```r
 k <- shapeKernel(c(7,3), type="diamond")
 display(erode(fan, k))
 ```
 
-![Eroded fan image, 7x3 
-kernel](tools/figures/fan_eroded_73.png)
+![plot of chunk fan-eroded73](tools/figures/fan-eroded73-1.png)
 
 The effect of dilation is complementary, shrinking dark regions and enlarging 
 bright ones:
 
-```R
+
+```r
 k <- shapeKernel(c(3,3), type="diamond")
 display(dilate(fan, k))
 ```
 
-![Dilated fan image](tools/figures/fan_dilated.png)
+![plot of chunk fan-dilated](tools/figures/fan-dilated-1.png)
 
 In this case the low-intensity and narrow handwriting towards the middle of the 
 fan has all but disappeared.
@@ -160,22 +169,23 @@ example, the difference between the dilated and eroded versions of an image,
 known as the *morphological gradient*, can be used to show up edges between 
 areas of light and dark.
 
-```R
+
+```r
 k <- shapeKernel(c(3,3), type="diamond")
 display(dilate(fan,k) - erode(fan,k))
 ```
 
-![Morphological gradient of the fan 
-image](tools/figures/fan_gradient.png)
+![plot of chunk fan-gradient](tools/figures/fan-gradient-1.png)
 
 The [Sobel filter](http://en.wikipedia.org/wiki/Sobel_operator) has a similar
 effect.
 
-```R
+
+```r
 display(sobelFilter(fan))
 ```
 
-![Sobel filtered fan image](tools/figures/fan_sobel.png)
+![plot of chunk fan-sobel](tools/figures/fan-sobel-1.png)
 
 ## Skeletonisation
 
@@ -190,7 +200,8 @@ algorithms, with different advantages and limitations. (Please see the
 documentation at `?skeletonise` for details.) Below we see the results of
 applying each of them in turn to the outline of a capital letter B.
 
-```R
+
+```r
 library(loder)
 B <- readPng(system.file("images", "B.png", package="mmand"))
 k <- shapeKernel(c(3,3), type="diamond")
@@ -223,7 +234,8 @@ performing this operation. Below we can see an example in one dimension, where
 we create some noisy data and then approximately recover the underlying cosine 
 function by applying smoothing.
 
-```R
+
+```r
 x <- seq(0, 4*pi, pi/64)
 y <- cos(x) + runif(length(x),-0.2,0.2)
 y_smoothed <- gaussianSmooth(y, 6)
@@ -233,7 +245,7 @@ axis(1, (0:4)*pi, expression(0,pi,2*pi,3*pi,4*pi))
 lines(x, y_smoothed, lwd=2)
 ```
 
-![Smoothed cosine data](tools/figures/cos_smoothed.png)
+![plot of chunk cos-smoothed](tools/figures/cos-smoothed-1.png)
 
 It should be borne in mind that the second argument to the `gaussianSmooth()` 
 function is the *standard deviation* of the smoothing Gaussian kernel in each 
@@ -243,23 +255,24 @@ On our two-dimensional test image, which contains no appreciable noise, the
 effect is to blur the picture. Indeed, this operation is sometimes called 
 [Gaussian blurring](http://en.wikipedia.org/wiki/Gaussian_blur).
 
-```R
+
+```r
 display(gaussianSmooth(fan, c(3,3)))
 ```
 
-![Smoothed fan image](tools/figures/fan_smoothed.png)
+![plot of chunk fan-smoothed](tools/figures/fan-smoothed-1.png)
 
 An alternative approach to noise reduction is
 [median filtering](http://en.wikipedia.org/wiki/Median_filter), and `mmand`
 provides another function for this purpose:
 
-```R
+
+```r
 k <- shapeKernel(c(3,3), type="box")
 display(medianFilter(fan, k))
 ```
 
-![Median filtered fan 
-image](tools/figures/fan_median_filtered.png)
+![plot of chunk fan-median-filtered](tools/figures/fan-median-filtered-1.png)
 
 This method is typically better at preserving edges in the image, which can be 
 desirable in some applications.
@@ -282,30 +295,31 @@ To demonstrate, we start by first thresholding the fan image using *k*-means
 clustering (with *k*=2). The package's `threshold()` function can be used for
 this:
 
-```R
+
+```r
 fan_thresholded <- threshold(fan, method="kmeans")
 display(fan_thresholded)
 ```
 
-![Thresholded fan 
-image](tools/figures/fan_thresholded.png)
+![plot of chunk fan-thresholded](tools/figures/fan-thresholded-1.png)
 
 We can then find the connected components. In this case the kernel determines
 which pixels are deemed to be neighbours. For example,
 
-```R
+
+```r
 k <- shapeKernel(c(3,3), type="box")
 fan_components <- components(fan_thresholded, k)
 ```
 
 Now we can visualise the result by assigning a colour to each component.
 
-```R
+
+```r
 display(fan_components, col=rainbow(max(fan_components,na.rm=TRUE)))
 ```
 
-![Connected components of fan 
-image](tools/figures/fan_components.png)
+![plot of chunk fan-components](tools/figures/fan-components-1.png)
 
 As we might expect, the largest components—which label only the "on" areas of
 the image—correspond to (most of) the ring of fan blades, and the bright part
@@ -313,6 +327,34 @@ of the central hub.
 
 This is can be a useful tool for "segmentation", or dividing an image into
 coherent areas.
+
+## The distance transform
+
+A useful operation in certain contexts is the distance transform, which
+calculates the distance from each pixel to a region of interest. There are
+signed an unsigned variants, with the former also calculating the distance
+to the boundary within the region of interest itself. We can use the
+thresholded image from above to illustrate the point:
+
+
+```r
+display(distanceTransform(fan_thresholded))
+```
+
+![plot of chunk fan-distance](tools/figures/fan-distance-1.png)
+
+```r
+display(abs(distanceTransform(fan_thresholded, signed=TRUE)))
+```
+
+![plot of chunk fan-distance](tools/figures/fan-distance-2.png)
+
+We take the absolute value of the signed transform here for ease of visual
+interpretation. Notice how, in both cases, bright "ridges" in the transformed
+image correspond to midlines at maximal distance from the boundary between
+foreground and background. Philip Rideout
+[provides a detailed explanation](https://prideout.net/blog/distance_fields/)
+of the algorithm and its uses.
 
 ## Resampling
 
@@ -324,7 +366,8 @@ at any distance from the new pixel location to determine its value.
 
 Let's use an example to illustrate this. Consider the simple vector
 
-```R
+
+```r
 x <- c(0,0,1,0,0)
 ```
 
@@ -335,17 +378,19 @@ value everywhere. We just didn't capture it. Our best guess would have to be
 that it is either 0 or 1, or something in between. If we try to use 2.5 as an 
 index we get the value 0:
 
-```R
+
+```r
 x[2.5]
-# [1] 0
+## [1] 0
 ```
 
 (R simply truncates 2.5 to 2 and returns element 2.) The `resample()` function 
 provides a set of alternatives:
 
-```R
+
+```r
 resample(x, 2.5, triangleKernel())
-# [1] 0.5
+## [1] 0.5
 ```
 
 Now we obtain the value 0.5, which does not appear anywhere in the original, 
@@ -361,12 +406,12 @@ provides a family of cubic spline kernels [proposed by Mitchell and
 Netravali](http://dl.acm.org/citation.cfm?id=378514). We can see the profile of 
 any of these kernels by plotting them:
 
-```R
+
+```r
 plot(mitchellNetravaliKernel(1/3, 1/3))
 ```
 
-![Mitchell-Netravali kernel 
-profile](tools/figures/mn_profile.png)
+![plot of chunk mn-profile](tools/figures/mn-profile-1.png)
 
 In higher dimensions, the resampled point locations can be passed to 
 `resample()` either as a matrix giving the points to sample at, one per row, or 
@@ -377,17 +422,18 @@ function is a convenience wrapper around `resample()` for scaling an array by a
 given scale factor. Here, we can use it to scale a smaller version of the fan 
 image up to the size of the larger version:
 
-```R
+
+```r
 library(loder)
 
 fan_small <- readPng(system.file("images", "fan-small.png", package="mmand"))
 dim(fan_small)
-# [1] 128 128
+## [1] 128 128   1
 
-display(rescale(fan_small, 4, mnKernel()))
+display(rescale(drop(fan_small), 4, mnKernel()))
 ```
 
-![Scaled-up fan image](tools/figures/fan_scaled.png)
+![plot of chunk fan-scaled](tools/figures/fan-scaled-1.png)
 
 The scaled-up image of course has less detail than the original 512x512 pixel 
 version, since it is based on 16 times fewer data points, but the general 
