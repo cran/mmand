@@ -1,6 +1,6 @@
-834bdbc3f381c57c294c563b76dcc281 *DESCRIPTION
+a4a820022e9f9540761c9e97e0dc9d6a *DESCRIPTION
 0fa40322dbb350c653fca9ce375cdb1f *NAMESPACE
-7dcfd0088f5be8c7cb7bbd72274205db *NEWS
+ebdb0ffa6d8dbd4a2b782b463332d1a8 *NEWS
 fa07ec879883dc2fe8548daecbf0a99a *R/automata.R
 66ebbb5f2d0273274e53f14d71b8f192 *R/components.R
 c9cd47fc63b99d0c218582e0a1720367 *R/display.R
@@ -48,8 +48,8 @@ a18333bd79412300732b42db4df3eb97 *inst/tinytest/test-10-morph.R
 15a3da05288819ce02a12433bb38efe3 *inst/tinytest/test-15-automata.R
 c2332bbec64632b9a697fbc4ad8e69e8 *inst/tinytest/test-20-resample.R
 b4c0ea9bd027c9dd62a976e1a3a7a99a *inst/tinytest/test-25-components.R
-e734878dee60639cd3ed629a14e9952a *inst/tinytest/test-30-distance.R
-beb02c0ef180cde4f4262afb4332321b *inst/tinytest/test-35-display.R
+c214e08f0ed5840d28b0a16618784137 *inst/tinytest/test-30-distance.R
+2819d620ef5a18d99cc5eef0c9b950c5 *inst/tinytest/test-35-display.R
 3c81d28b597b0b0d66af3ab1fa8a5bd7 *inst/tinytest/triangle_function.rds
 cd9ca0100e65cbf2d8f2d3196bce718e *man/binarise.Rd
 522c88f81a510c9e795e486b85d54ca8 *man/binary.Rd
